@@ -2,6 +2,7 @@ package app.filestash.platform.payment;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
@@ -22,16 +23,19 @@ import com.stripe.Stripe;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
+	private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
+
 	@Value("${stripe.token}")
 	private String STRIPE_API_TOKEN;
 
 	@Autowired
 	CurrencyUtils currencyUtils;
 
-	private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
-
 	@PostConstruct
 	public void StripeServiceSetup() {
+		if (!STRIPE_API_TOKEN.startsWith("sk_")) {
+			logger.warn("STRIPE_TOKEN is not valid");
+		}
 		Stripe.apiKey = STRIPE_API_TOKEN;
 	}
 
@@ -43,8 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
             Customer customer = null;
             try {
                 customer = Customer.retrieve(cid);
-            } catch (StripeException e) {
-                continue;
+            } catch (StripeException err) {
+				logger.warn("paymentService::getCards action=customer.retrieve err={}", err.getMessage());
+				continue;
             }
             CustomerListPaymentMethodsParams params = CustomerListPaymentMethodsParams.builder()
 					.setType(CustomerListPaymentMethodsParams.Type.CARD)
@@ -52,8 +57,8 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentMethodCollection paymentMethods = null;
             try {
                 paymentMethods = customer.listPaymentMethods(params);
-            } catch (StripeException e) {
-				logger.warn("STRIPE EXCEPTION msg={}", e.getMessage());
+            } catch (StripeException err) {
+				logger.warn("paymentService::getCards action=customer.listPaymentMethods err={}", err.getMessage());
 				continue;
             }
             List<PaymentMethod> pms = paymentMethods.getData();
@@ -82,8 +87,8 @@ public class PaymentServiceImpl implements PaymentService {
             InvoiceCollection invcoll = null;
             try {
                 invcoll = com.stripe.model.Invoice.list(params);
-            } catch (StripeException e) {
-				logger.warn("STRIPE EXCEPTION msg={}", e.getMessage());
+            } catch (StripeException err) {
+				logger.warn("paymentService::getInvoices action=invoice.list err={}", err.getMessage());
                 continue;
             }
 			for(int j=0; j<invcoll.getData().size(); j++) {
@@ -91,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
 				invoices.add(Invoice.builder()
 						.url(inv.getHostedInvoiceUrl())
 						.amount(currencyUtils.format(inv.getCurrency(), inv.getAmountPaid()))
-						.creationDate(LocalDate.from(Instant.ofEpochSecond(inv.getCreated())))
+						.creationDate(LocalDate.ofInstant(Instant.ofEpochSecond(inv.getCreated()), ZoneId.systemDefault())) // Convert Instant to LocalDate
 						.build());
 			}
 		}
@@ -110,6 +115,7 @@ public class PaymentServiceImpl implements PaymentService {
 				ids.add(result.getData().get(i).getId());
 			}
 		} catch (StripeException err) {
+			logger.warn("paymentService::getCustomerId action=customer.search err={}", err.getMessage());
 			return ids;
 		}
 		return ids;
@@ -120,7 +126,8 @@ public class PaymentServiceImpl implements PaymentService {
 		params.put("customer", customerID);
         try {
             return Optional.of(Session.create(params));
-        } catch (StripeException e) {
+        } catch (StripeException err) {
+			logger.warn("paymentService::getSession action=session.create err={}", err.getMessage());
             return Optional.empty();
         }
     }

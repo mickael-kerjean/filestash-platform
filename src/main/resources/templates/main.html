@@ -13,7 +13,8 @@
          	    </div>
         	    <a class="box" th:href="@{/user/docker/}"> Docker Images </a>
         	    <a class="box" th:href="@{/user/packages/}"> Packages </a>
-				<a class="box" th:href="@{/release/}"> Release Note </a>
+
+                <a class="box" sec:authorize="isAuthenticated()" th:href="@{/release/}">Release Note</a>
             </div>
             <div class="box-container" style="margin-bottom:5px;">
                 <div class="bracket-legend"> <span class="bracket">&nbsp;</span><span class="legend">cloud</span> </div>

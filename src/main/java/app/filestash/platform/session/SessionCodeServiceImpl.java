@@ -2,16 +2,32 @@ package app.filestash.platform.session;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+
+import app.filestash.platform.payment.PaymentServiceImpl;
+import com.stripe.Stripe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Service
 public class SessionCodeServiceImpl implements SessionCodeService {
+
+	private static final Logger logger = LoggerFactory.getLogger(SessionCodeServiceImpl.class);
+
+	@Value("${session.secret_key}")
+	public String SALT;
 	
-	@Value("${session.SECRET_KEY}")
-	public static String SALT;
-	
-	public static String invalid_code = "__invalid__"; 
+	public static String invalid_code = "__invalid__";
+
+	@PostConstruct
+	public void StripeServiceSetup() {
+		if (SALT.isEmpty()) {
+			logger.warn("secret key is empty");
+		}
+	}
 
 	@Override
 	public String generateCode(String key) {
