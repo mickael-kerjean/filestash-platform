@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Login')}"></head>
+  <body>
+    <div class="container">
+    	<form method="POST" th:action="@{/login/sendcode}" onsubmit="submitForm(event)">
+	      <input name="username" type="text" placeholder="Your email" required autofocus autocomplete="username" />
+	      <button type="submit">CREATE CODE</button>
+	    </form>
+	    <div class="alert" th:if="${param.error}">Invalid username and/or password</div>
+	    <div class="alert" th:if="${param.logout}">You have been logged out</div>
+	    <script>
+	      function submitForm(e) {
+	          let $button = e.currentTarget.querySelector("button[type='submit']");
+	          $button.textContent = "LOADING ...";
+	          $button.setAttribute("disabled", "true");
+	      }
+	    </script>
+	    <style>
+			form { margin: 100px auto 150px auto; max-width: 400px; }
+		</style>
+	</div>
+  </body>
+</html>

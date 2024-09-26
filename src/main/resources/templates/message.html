@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Message')}"></head>
+  <body>
+    <div class="container" style="max-width:500px">
+    	<h2 class="center" th:text="${message}"></h2>
+    	<p class="center" th:text="${description}"></p>
+	</div>
+  </body>
+</html>

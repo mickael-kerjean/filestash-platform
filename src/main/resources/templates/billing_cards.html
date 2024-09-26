@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head th:replace="~{fragments/components :: head(title='Cards')}"></head>
+    <body>
+        <div class="container">
+            <h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> Payment Cards </h2>
+            <div th:if="${cards.empty}" class="center empty-box">
+                There is no card associated to this account
+            </div>
+            <a th:each="card, custStat : ${cards}" class="card" th:href="${card.url}">
+                <span class="type" th:text="${card.type}"></span>
+                <span class="number" style="width:100px" th:text="${'•••• ' + card.last4}"></span>
+                <span class="expires" th:text="${'Expires ' + #dates.format(card.expired, 'MM/yyyy')}"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                </svg>
+            </a>
+        </div>
+        <style>
+            .empty-box {
+                background: white;
+              border: 2px dashed rgba(0,0,0,0.1);
+              padding: 45px 0;
+            }
+            .card {
+                display: flex;
+                justify-content: space-between;
+                font-family: monospace;
+            }
+            .card .type {
+                width: 90px;
+                background: var(--emphasis);
+                color: white;
+                text-align: center;
+                padding: 0 5px;
+                border-radius: 3px;
+                margin-right: 10px;
+                font-size: 0.85rem;
+                line-height: 20px;
+            }
+            .card .number {
+                margin-right: 50px;
+            }
+            .card .expires {
+                flex: 1;
+            }
+            .card svg { width: 20px; height: 20px; }
+            @media (max-width: 470px) { .card .number{ display: none; } }
+            @media (max-width: 300px) {
+                .card .number{ display: block; margin: 0; }
+                .card .expires{ display: none; }
+            }
+        </style>
+    </body>
+</html>

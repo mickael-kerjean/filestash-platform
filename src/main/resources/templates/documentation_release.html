@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head th:replace="~{fragments/components :: head(title='Releases')}"></head>
+    <body>
+        <div class="container">
+            <h2 class="menubar"> <a class="back" th:href="@{/release/}">&nbsp;</a>  <span th:text="${title}"></span> </h2>
+
+            <div th:if="${hasFeatures}">
+                <h3> Features </h3>
+                <div th:each="item : ${items}" th:if="${item.type == 'feature'}" class="card">
+                    <span th:title="${item.hash}" th:text="${item.title}"></span>
+                </div>
+
+                <h3> Other Changes </h3>
+                <div th:each="item : ${items}" th:if="${item.type != 'feature'}" class="card">
+                    <span th:title="${item.hash}" class="type" th:text="${item.type}"></span>
+                    <span th:text="${item.title}"></span>
+                </div>
+            </div>
+            <div th:unless="${hasFeatures}">
+                <div th:each="item : ${items}" class="card">
+                    <span th:title="${item.hash}" class="type" th:text="${item.type}"></span>
+                    <span th:text="${item.title}"></span>
+                </div>
+            </div>
+        </div>
+        <style>
+            .empty-box {
+                background: white;
+              border: 2px dashed rgba(0,0,0,0.1);
+              padding: 45px 0;
+            }
+            .card {
+                font-family: monospace;
+            }
+            .card .type {
+              background: var(--emphasis);
+              color: white;
+              text-align: center;
+              padding: 0 5px;
+              border-radius: 3px;
+              font-size: 0.85rem;
+              line-height: 20px;
+              cursor: pointer;
+            }
+            h3 {
+              margin: 25px 0 0 0;
+          }
+        </style>
+    </body>
+</html>

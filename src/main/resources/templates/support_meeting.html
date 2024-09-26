@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head th:replace="~{fragments/components :: head(title='Book a meeting')}"></head>
+    <body>
+        <div class="container">
+    	    <h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> Book a timeslot </h2>
+    	    <div class="loader"></div>
+    	    <p class="center">loading ...</p>
+	    </div>
+
+	    <iframe src="https://calendly.com/mickael-kerjean/15min?embed_domain=platform.filestash.app&amp;embed_type=Inline&amp;hide_gdpr_banner=1" width="100%" height="100%" frameborder="0" style="margin-top:-50px;"></iframe>
+	    <script>
+		 (function() {
+			 const $iframe = document.querySelector("iframe");
+			 $iframe.addEventListener("load", function(e) {
+				 setTimeout(() => document.body.classList.add("done"), 1000);
+			 });
+		 })();
+	    </script>
+
+        <style>
+         html { height: 100% }
+         body {
+    	     padding-bottom: 0;
+    	     height: 100%;
+    	     display: flex;
+    	     flex-direction: column;
+         }
+	     iframe {
+		     width:100%;
+	  	     height:650px;
+	  	     flex-grow: 1;
+	     }
+	     .loader {
+		     margin: 100px auto 0 auto;
+		     border: 16px solid var(--bg-color);
+		     border-top: 16px solid var(--primary);
+		     border-radius: 50%;
+		     width: 80px;
+		     height: 80px;
+		     animation: spin 2s linear infinite;
+	     }
+	     .container {
+		     z-index: 3;
+	     }
+	     @keyframes spin {
+	         0% { transform: rotate(0deg); }
+	         100% { transform: rotate(360deg); }
+	     }
+	     iframe { display: none; transition: opacity 0.5s ease-in-out; }
+	     .done iframe { display: block; }
+	     .done .loader, .done p { display: none; }
+        </style>
+    </body>
+</html>

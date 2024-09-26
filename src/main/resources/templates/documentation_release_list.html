@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Releases')}"></head>
+  <body>
+    <div class="container">
+      <h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a>  <span th:text="${title}"></span> </h2>
+      <div th:if="${items.size == 0}" class="center empty-box">
+        There is nothing available for this period
+      </div>
+      <div th:each="item, custStat : ${items}">
+        <a th:href="@{/release/{date}(date=${#temporals.format(item, 'yyyy-MM-01')})}" th:style="${custStat.count > 5 ? 'display:none': ''}" class="card">
+          <span th:text="${#temporals.format(item, 'MMMM yyyy')}"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+          </svg>
+        </a>
+      </div>
+      <button th:if="${#lists.size(items) > 10}" onclick="onClickMore()">more</button>
+      <script>
+        function onClickMore() {
+          let i = 0;
+            let $cards = document.querySelectorAll(".card[style='display:none']")
+            $cards.forEach(($el) => {
+                i += 1;
+                if (i > 5) {
+                    return;
+                }
+                $el.removeAttribute("style");
+            });
+            if ($cards.length === 0) document.querySelector(".container button").remove();
+        }
+      </script>
+      <style>
+        .card {
+            display: flex;
+          justify-content: space-between;
+          font-family: monospace;
+          text-decoration: none;
+          color: inherit;
+        }
+        .card svg {
+          height: 20px;
+          width: 25px;
+        }
+        .empty-box {
+            background: white;
+          border: 2px dashed rgba(0,0,0,0.1);
+          padding: 45px 0;
+        }
+      </style>
+    </div>
+  </body>
+</html>

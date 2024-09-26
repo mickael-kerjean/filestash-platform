@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head th:replace="~{fragments/components :: head(title='Billing')}"></head>
+    <body>
+        <div class="container">
+            <h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> Billing </h2>
+            <div th:if="${invoices.empty}" class="center empty-box">
+                There is no bills available for this account
+            </div>
+            <div th:each="invoice, custStat : ${invoices}">
+                <a class="card paid" th:style="${custStat.count > 5 ? 'display:none': ''}" th:href="${invoice.url}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    <span class="date" th:text="${invoice.creationDate != null ? #temporals.format(invoice.creationDate, 'dd MMM yyyy') : 'N/A'}"></span>
+                    <br>
+                    <div class="amount" th:text="${invoice.amount}"></div>
+            </a>
+            </div>
+            <script>
+                function onClickMore() {
+                  let i = 0;
+                    let $cards = document.querySelectorAll(".card[style='display:none']")
+                    $cards.forEach(($el) => {
+                        i += 1;
+                        if (i > 5) {
+                            return;
+                        }
+                        $el.removeAttribute("style");
+                    });
+                    if ($cards.length === 0) document.querySelector(".container button").remove();
+                }
+            </script>
+            <button th:if="${#lists.size(invoices) > 5}" onclick="onClickMore()">more</button>
+        </div>
+        <style>
+            .card.paid {
+                border-left: 5px solid var(--success);
+            }
+            .card .date { padding-right: 15px; }
+            .empty-box {
+                background: white;
+              border: 2px dashed rgba(0,0,0,0.1);
+              padding: 45px 0;
+            }
+            .card svg {
+                float: right;
+              height: 40px;
+              width: 25px;
+              color: var(--color);
+            }
+        </style>
+    </body>
+</html>

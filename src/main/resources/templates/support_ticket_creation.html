@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Billing')}"></head>
+  <body>
+    <div class="container" style="max-width:500px">
+    	<h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> Create a Web Ticket </h2>
+    	<form method="POST" th:action="${target}" style="margin-top: 50px;">
+	      <input name="username" type="text" placeholder="Your email" required autofocus autocomplete="username" th:value="${email}" />
+          <textarea name="content" placeholder="what is going on?" rows="5"></textarea>
+          <input type="hidden" name="type" value="support::new_ticket" />
+      	  <input type="hidden" name="redirect" th:value="${redirect}" />
+	      <button type="submit">SEND</button>
+	    </form>
+	</div>
+  </body>
+</html>

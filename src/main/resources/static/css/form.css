@@ -1,0 +1,54 @@
+form input[type="text"], form input[type="email"], form textarea, form select {
+    font-size: 1em;
+    display: block;
+    margin: 7px 0;
+    background: white;
+    border: 1px solid #e2e2e2;
+    outline: none;
+    padding: 10px 15px;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border-radius: 3px;
+    box-shadow: rgba(158, 163, 172, 0.3) 5px 5px 20px;
+    font-family: inherit;
+    color: inherit;
+}
+form button{
+    font-family: inherit;
+    border: none;
+    outline: none;
+    padding: 10px;
+    width: 100%;
+    background: var(--primary);
+    color: var(--emphasis);
+    font-weight: bold;
+    font-size: 1em;
+    margin-top: 5px;
+    border-radius: 3px;
+    box-shadow: rgba(158, 163, 172, 0.3) 5px 5px 20px;
+}
+form button[disabled] {
+    background: var(--color);
+    color: var(--bg-color);
+}
+form fieldset {
+    color: inherit;
+    margin-bottom: 20px;
+    background: white;
+    box-shadow: rgba(158, 163, 172, 0.3) 5px 5px 20px;
+    border: none;
+}
+
+button[onclick] {
+	text-decoration: none;
+    border: 2px solid var(--dark);
+    background: var(--dark);
+    border-radius: 3px;
+    color: var(--super-light);
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Error '+${status})}"></head>
+  <body>
+    <style>
+    body {
+    	background: var(--dark);
+    	color: var(--color);
+    }
+    h1 { color: var(--bg-color); }
+    .message { color: var(--bg-color); font-family: monospace; font-style: italic; opacity: 0.8; }
+    .stacktrace { font-size: 0.8rem; overflow: auto; }
+    </style>
+	<div class="container" style="margin-top:100px">
+		 <div th:switch="${status}">
+		 	<h1 th:case="'403'" class="center">Access Denied</h1>
+            <h1 th:case="'404'" class="center">Page Not Found</h1>
+            <h1 th:case="'500'" class="center">Internal Server Error</h1>
+         	<h1 th:case="*" class="center">Oops! Something went wrong</h1>
+         </div>
+		<p class="message center" th:text="${message}"></p>
+		<br><br>
+	    <pre class="stacktrace" th:text="${trace}"></pre>
+	    <div style="display:none">
+		    <div>Exception:<br/> <span th:text="${exception}"></span></div>
+		    <div>Binding Errors: <span th:text="${errors}"></span></div>
+		</div>
+	</div>
+  </body>
+</html>

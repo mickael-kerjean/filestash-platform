@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head th:replace="~{fragments/components :: head(title='Index')}"></head>
+    <body>
+        <div th:replace="~{fragments/components :: menu}"></div>
+        <div class="container">
+
+            <h2> Software Deployment</h2>
+            <div class="box-container" style="margin-bottom:5px;">
+         	    <div class="bracket-legend">
+         		    <span class="bracket">&nbsp;</span>
+         		    <span class="legend">selfhosted</span>
+         	    </div>
+        	    <a class="box" th:href="@{/user/docker/}"> Docker Images </a>
+        	    <a class="box" th:href="@{/user/packages/}"> Packages </a>
+				<a class="box" th:href="@{/release/}"> Release Note </a>
+            </div>
+            <div class="box-container" style="margin-bottom:5px;">
+                <div class="bracket-legend"> <span class="bracket">&nbsp;</span><span class="legend">cloud</span> </div>
+
+                <a class="box" sec:authorize="isAnonymous()" href="mailto:support@filestash.app?subject=Request to instance creation in the Filestash cloud&body=Hello, %0D%0A%0D%0AI would like to create a new cloud instance with the following specs: %0D%0A- subdomain: your-company.cloud.filestash.app%0D%0A- expected number of users: 0-10%0D%0A%0D%0A">Create an instance</a>
+                <div class="box disabled" sec:authorize="!isAnonymous()" title="customer only">Create an instance</div>
+
+			    <a class="box" href="https://www.filestash.app/install-cloud.html">AWS AMI</a>
+            </div>
+
+            <h2> Support </h2>
+            <div class="box-container">
+                <a class="box" sec:authorize="isAuthenticated()" th:href="@{/support/ticket/new}">Create a Support Ticket</a>
+                <div class="box disabled" sec:authorize="!isAuthenticated()" title="customer only">Create a Support Ticket</div>
+
+        	    <a sec:authorize="isAuthenticated()" class="box" href="mailto:support@filestash.app?subject=Filestash support">Email support</a>
+        	    <div sec:authorize="!isAuthenticated()" class="box disabled" title="customer only">Email support</div>
+        	    
+        	    <a sec:authorize="isAuthenticated()" class="box" th:href="@{/support/book}">Book a Support Call</a>
+        	    <div sec:authorize="!isAuthenticated()" class="box disabled" title="customer only">Book a Support Call</div>
+	        </div>
+
+            <div sec:authorize="isAnonymous() or hasRole('ROLE_CHAMPION')">
+	            <h2> Billing </h2>
+                <div class="box-container">
+
+		            <div sec:authorize="isAnonymous()"><a class="box disabled">Invoices</a></div>
+                    <div sec:authorize="hasRole('ROLE_CHAMPION')"><a class="box" th:href="@{/support/billing}">Invoices</a></div>
+
+		            <div sec:authorize="isAnonymous()"><a class="box disabled">Payment Info</a></div>
+                    <div sec:authorize="hasRole('ROLE_CHAMPION')"><a class="box" th:href="@{/support/cards}">Payment Info</a></div>
+
+					<div sec:authorize="isAnonymous()"><a class="box disabled">Cancel Subscription</a></div>
+                    <div sec:authorize="hasRole('ROLE_CHAMPION')"><a class="box" href="mailto:support@filestash.app?subject=Filestash cancel">Cancel Subscription</a></div>
+		        </div>
+            </div>
+	    </div>
+
+        <style>
+         .box {
+    	     position: relative;
+             width: 100%;
+	         border: none;
+	         line-height: 1.1rem;
+	         text-decoration: none;
+	         transition: background 0.2s;
+	         border-radius: 5px;
+	         cursor: pointer;
+	         font-size: 1.1em;
+	         color: #466372;
+	         background: #9AD1ED;
+	         font-weight: bold;
+	         box-shadow: rgb(158 163 172 / 50%) 5px 5px 20px;
+	         padding: 40px 10px;
+	         box-sizing: border-box;
+	         font-family: inherit;
+	         text-align: center;
+	         display: block;
+	     }
+	     .box.disabled {
+    	     background: var(--light);
+    	     color: var(--dark);
+    	     cursor: not-allowed;
+	     }
+	     .box:hover:not(.disabled) {
+	         background: #466372;
+	         color: #f2f3f5;
+         }
+         .box-container {
+	         display: grid;
+	         grid-template-columns: repeat(3, 1fr);
+	         gap: 5px;
+	         position: relative;
+	     }
+	     @media (max-width: 765px) { .box-container{ grid-template-columns: repeat(2, 1fr); }}
+	     @media (max-width: 525px) { .box-container{ grid-template-columns: repeat(1, 1fr); }}
+
+	     .bracket-legend {
+	         position: absolute;
+	         left: -15px;
+	     }
+	     @media (max-width: 925px) { .bracket-legend { display: none; }}
+
+	     .bracket-legend .bracket {
+		     background-position: 0 0;
+	         display: inline-block;
+	         height: 98px;
+	         background-size: contain;
+	         width: 20px;
+	         background-repeat: no-repeat;
+	         background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjM3IiBoZWlnaHQ9IjMwMCI+CiAgPHBhdGggZD0ibSAzMy40MTc1OTksMi41Nzk3Mzk3IGMgLTIuOTAyMDAxLDAuMTQ2MTM4OCAtNS44NTkxNCwtMC4zNjExMTg4IC04LjcwMDMyNCwxLjUyMjE1NDMgLTMuNTQzNTMyLDIuNjkzMjA4IC02LjI5NTg3NiwxMC40ODEzNzEgLTcuNjE5MzcsMTkuNDI4NTQxIC0xLjM3ODM2Myw5LjAyMjA2OSAtMS41ODAzOTMsMTguODkzMTUzIC0xLjcxNTkxLDI4LjUwNjQyNCAtMC4xNDcwNzUsMTQuNDUxNjczIDAuMDQ0NTYsMjguOTE3MjQ3IC0wLjIwNTk0NSw0My4zNjMwNDUgLTAuMDU2NzYsMi41ODUwMTIgLTAuMTAxNjk3LDUuNTE2ODY2IC0wLjIxODA5Myw4LjIyMzg2NiAtMC40MjgwMDIsOS42ODU2MSAtMS41NzM0MTYsMTkuNTQyNCAtNC4wMzQ3NTIsMjYuOTkzOTIgLTEuODY0ODk5OCw1LjQzODY5IC00LjU0MzQ3NDgsOC40MjE5NiAtNy4yNDM4NzM4LDkuNTQ0NTQgLTAuNTI5NjU1LC0wLjE3MTA4IC0wLjQ2MDcxLDAuOTYzMDUgLTAuNDQwNjI5LDEuOTkwNjMgLTAuMDAyMyw1LjY5MTQ2IC0wLjAwMzcsMTEuMzgyOTMgLTAuMDA2MywxNy4wNzQzOSAyLjMxMTY5NSwxLjA0MTMxIDQuNjY5MzgxLDIuNzgzMDIgNi41MTU3Niw2Ljc5MzQ0IDIuNzIyOTQ2OCw1Ljk5NTExIDQuMTgyNDM3OCwxNS4wNTM0IDQuODUxNDA3OCwyNC4wNzgwNSAwLjQxMjg1Nyw1LjU0MTI0IDAuNTgxMjk0LDExLjM0NDM1IDAuNjUxNzEzLDE2LjgzNzE5IDAuMDc0NzMsNi4xODI5NCAwLjAzNDYzLDEyLjY2NTY1IDAuMDQ2OTMsMTguOTY0NzcgMC4wNzAyOCwxMS41NDg0MSAtMC4wNTQ3MiwyMy4xMzk2MyAwLjQxMjQ4MSwzNC42NDE0MiAwLjM4NDk0Miw4Ljk2MTE5IDEuMzE3NTM4LDE4LjEzNTY4IDMuNTMxNDczLDI1LjE5Nzk3IDIuMDM2MDA5LDYuNjIzNzYgNS4xNzIwNjcsMTAuODc1MTUgOC40MTMyODIsMTAuOTI3NjIgMi4zMjE5NTMsMC40MjI2MiA0LjY1MTE4MSwwLjI4NzI0IDYuOTc2OTA5LDAuMzIyMzMgMCwtNS44MjI5NiAwLC0xMS42NDU5IDAsLTE3LjQ2ODg0IC0xLjQ2Njk3MywtMC4xNzE4MiAtMi44NDI5NDUsLTAuMjE5NzcgLTQuMzA2ODE0LC0wLjY5MTYzIC0xLjgwODc2MiwtMC41MTIxOSAtMy42MjA1MjYsLTIuMDQ4MDQgLTUuMDE2OTQ0LC01LjIzOTQ0IC0xLjIxOTUyNywtMi43MTcwNiAtMi4yNjcyMjMsLTYuMjk3MzcgLTIuNjI3MTM5LC0xMC40NzMxMSAtMC4yODA3MjQsLTQuMjgxODIgLTAuMDQ3NywtOC42NDQ4OCAtMC4xMjk1NDcsLTEyLjk2MTgzIC0wLjA0NzMxLC0xNi41OTY5NSAwLjE3NzAwMiwtMzMuMjM2NTcgLTAuMzc0NDU4LC00OS43OTE3NSAtMC4zMzc1MzMsLTEwLjA1MzYxIC0wLjk3MTg1MSwtMjAuMzA0IC0yLjc1OTE2NiwtMjkuMzM0MDMgLTEuMDA5MzIsLTQuOTM1ODYgLTIuNTY4NzIsLTguODg5NTYgLTQuMjg4OTEzLC0xMi4wODYyMyAtMS42NDM2MDIsLTMuMjMgLTMuMzc1OTU3LC02LjEyMzIyIC01LjAzNzY2NCwtOS4yODY0NCAyLjU3MDI3NywtNC43NjcxOCA1LjM4MDg0OCwtOC43OTc3OSA3LjU5MzIzLC0xNC43ODMyMiAyLjI4NTIwMSwtNi40MDQ2MiAzLjI4MDA0MSwtMTUuMTMyMTQgMy44NzU3NzQsLTIzLjYwNjE4IDEuMTE5NjUxLC0xNS44OTE1MDYgMC45OTA5OTcsLTMyLjEzMzI5OCAwLjk4NTgxNiwtNDguMjI4MzExIC0wLjAwNDUsLTguMTczNTg3IC0wLjAzMzUyLC0xNi4zNTQ2MzEgMC4wOTQyMywtMjQuNTIxNDkyIDAuMDY1MjksLTIuNjUwOTU2IDAuMjcxMDA3LC01LjM3ODUyOCAwLjkyNzc3OCwtNy40Nzk0NDggMS4xODk4NjQsLTQuMzMzODk1IDIuODQyNzE3LC03LjkxNjYyOCA0LjgxNDY4NSwtOS4zNjc4NDUgMS45NDkxOTIsLTEuNDQxNDA0IDMuOTk5MDU4LC0xLjA0NTQ4MyA1Ljk4NjEyNCwtMS44NjU0NjcgMC4yMDc4MDQsLTIuMDY1NTkyIDAuMzY0MTk5LC00LjE4MjIwNCAwLjI1OTM2OSwtNi4zMjY3NTEgMC4wMTIzNCwtMy42MzU4NDExIC0wLjAwMjQsLTcuMjc0MDMxMiAtMC4wMDExLC0xMC45MTA3ODg2IC0wLjQwMzM0OSwwLjAwNDE2IC0wLjgwNjY5OSwwLjAwODM0IC0xLjIxMDA0OSwwLjAxMjQ5OCB6IiBzdHlsZT0iZmlsbDojMzEzNTM4O2ZpbGwtb3BhY2l0eToxO3N0cm9rZS13aWR0aDowLjk4MzAyMyIgLz4KPC9zdmc+);
+	     }
+	     .bracket-legend .legend {
+	         font-size: 0.9rem;
+	         width: 98px;
+	         bottom: 0px;
+	         left: 0px;
+	         transform: rotate(-90deg);
+	         position: absolute;
+	         text-align: center;
+	         transform-origin: 0 100%;
+	     }
+
+	     /* COMING SOON */
+	     a.box.coming-soon:hover:after {
+	         content: "COMING SOON";
+	         position: absolute;
+	         left: 0;
+	         background: var(--dark);
+	         width: 100%;
+	         height: 100%;
+	         border-radius: 4px;
+	         color: var(--light);
+	         top: 0;
+	         padding-top: 39px;
+	         box-sizing: border-box;
+	     }
+	     a.box.customer-only:after:hover {
+	         content: "CUSTOMER ONLY";
+	         position: absolute;
+	         left: 0;
+	         background: var(--dark);
+	         width: 100%;
+	         height: 100%;
+	         border-radius: 4px;
+	         color: var(--light);
+	         top: 0;
+	         padding-top: 39px;
+	         box-sizing: border-box;
+	     }
+	    </style>
+    </body>
+</html>
