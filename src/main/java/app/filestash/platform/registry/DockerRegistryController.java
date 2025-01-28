@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.IOException;
@@ -36,7 +37,15 @@ public class DockerRegistryController {
 
     @Value("${registry.docker.image}")
     private String DOCKER_ROOT_IMAGE;
-
+    
+    @GetMapping("/{repository:.+}:{tag:.+}")
+    public String ImagePage(@PathVariable String repository, @PathVariable String tag, Model model) {
+    	String img = "platform.filestash.app/" + repository + ":" + tag;
+    	model.addAttribute("title", "Docker Registry");
+    	model.addAttribute("name", img);
+    	model.addAttribute("cmd", "docker pull " + img);
+    	return "registry_public";
+    }
 
     @GetMapping("/v2/")
     public ResponseEntity<String> authenticateRegistry() {
