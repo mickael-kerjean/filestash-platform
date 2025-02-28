@@ -50,7 +50,7 @@ public class ReleaseNoteServiceImpl implements ReleaseNoteService {
                                 .message(element.getElementsByAttribute("title").attr("title").split("\\R")[0])
                                 .hash(element.getElementsByAttribute("href").attr("href").replaceAll(".*/commit/([a-f0-9]{40})$", "$1"))
                                 .date(LocalDate.parse(
-                                        element.select("relative-time").text(),
+                                        element.parents().select("[data-testid=commit-group-title]").first().text().replace("Commits on", "").trim(),
                                         DateTimeFormatter.ofPattern("MMM d, yyyy")
                                 ))
                                 .build();
