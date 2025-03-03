@@ -5,7 +5,7 @@ form input[type="text"], form input[type="email"], form textarea, form select {
     background: white;
     border: 1px solid #e2e2e2;
     outline: none;
-    padding: 10px 15px;
+    padding: 10px 10px;
     min-width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -13,6 +13,7 @@ form input[type="text"], form input[type="email"], form textarea, form select {
     box-shadow: rgba(158, 163, 172, 0.3) 5px 5px 20px;
     font-family: inherit;
     color: inherit;
+    appearance: none;
 }
 form button{
     font-family: inherit;

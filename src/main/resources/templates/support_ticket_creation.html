@@ -5,6 +5,11 @@
     <div class="container" style="max-width:500px">
     	<h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> Create a Web Ticket </h2>
     	<form method="POST" th:action="${target}" style="margin-top: 50px;">
+	      <select name="priority" style="box-shadow: none; opacity: 0.4; border: none; background: rgba(0, 0, 0, 0.05); font-size: 0.9rem; text-align: center;">
+	         <option value="urgent">Urgent Priority / Blocking</option>
+	         <option value="high">High Priority</option>
+	         <option value="normal" selected>Default Priority</option>
+	      </select>
 	      <input name="username" type="text" placeholder="Your email" required autofocus autocomplete="username" th:value="${email}" />
           <textarea name="content" placeholder="what is going on?" rows="5"></textarea>
           <input type="hidden" name="type" value="support::new_ticket" />
