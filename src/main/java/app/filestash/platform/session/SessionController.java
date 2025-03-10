@@ -65,6 +65,7 @@ public class SessionController {
 		case "aws":
 		case "zendesk":
 		case "trello":
+		case "partner":
 			this.setRole(req, origin, "ROLE_PARTNER");
 			break;
 		default:
