@@ -32,12 +32,15 @@ public class DockerRegistryController {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    @Value("${registry.docker.token}")
-    private String DOCKER_HUB_TOKEN;
+    @Value("${registry.docker.registry:https://registry.hub.docker.com/v2/%s/manifests/%s}")
+    private String DOCKER_REGISTRY;
 
     @Value("${registry.docker.image}")
     private String DOCKER_ROOT_IMAGE;
-    
+
+    @Value("${registry.docker.token}")
+    private String DOCKER_HUB_TOKEN;
+
     @GetMapping("/{repository:.+}:{tag:.+}")
     public String ImagePage(@PathVariable String repository, @PathVariable String tag, Model model) {
     	String img = "platform.filestash.app/" + repository + ":" + tag;
@@ -57,7 +60,7 @@ public class DockerRegistryController {
         // STEP1: prepare everything
         logger.info("DOCKER pull image={} tag={}", remoteImage, tag);
         HttpResponse<String> resp;
-        Builder req = this.buildHttpRequest(String.format("https://registry.hub.docker.com/v2/%s/manifests/%s", DOCKER_ROOT_IMAGE, remoteImage));
+        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY, DOCKER_ROOT_IMAGE, remoteImage));
         req.setHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
         // STEP2: make the request
@@ -126,11 +129,12 @@ public class DockerRegistryController {
         Builder req = HttpRequest
                 .newBuilder()
                 .uri(URI.create(url));
-        req.setHeader("Authorization", String.format("Bearer %s", DOCKER_HUB_TOKEN));
+        if (!DOCKER_HUB_TOKEN.isEmpty()) req.setHeader("Authorization", String.format("Bearer %s", DOCKER_HUB_TOKEN));
         return req;
     }
 
     private void DockerControllerSetup() {
+    	if (DOCKER_HUB_TOKEN.isEmpty()) return;
         HttpRequest req = HttpRequest
                 .newBuilder()
                 .uri(URI.create(String.format("https://auth.docker.io/token?service=registry.docker.io&scope=repository:%s:pull", DOCKER_ROOT_IMAGE)))
