@@ -32,7 +32,7 @@ public class DockerRegistryController {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    @Value("${registry.docker.registry:https://registry.hub.docker.com}")
+    @Value("${registry.docker.url:https://registry.hub.docker.com}")
     private String DOCKER_REGISTRY;
 
     @Value("${registry.docker.image}")
