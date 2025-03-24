@@ -58,9 +58,11 @@ public class DockerRegistryController {
     @GetMapping("/v2/{name}/manifests/{tag}")
     public ResponseEntity<String> pullImageManifest(@PathVariable(value="name") final String remoteImage, @PathVariable(value="tag") final String tag) {
         // STEP1: prepare everything
-        logger.info("DOCKER pull image={} tag={}", remoteImage, tag);
+        logger.info("DOCKER pull image={} tag={} root={}", remoteImage, tag, DOCKER_ROOT_IMAGE);
         HttpResponse<String> resp;
-        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", DOCKER_ROOT_IMAGE, remoteImage));
+        Builder req;
+        if (DOCKER_ROOT_IMAGE.isEmpty()) req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", remoteImage, tag));
+        else req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", DOCKER_ROOT_IMAGE, remoteImage));
         req.setHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
         // STEP2: make the request
@@ -88,11 +90,13 @@ public class DockerRegistryController {
     }
 
     @GetMapping("/v2/{name}/blobs/{hash}")
-    public ResponseEntity<StreamingResponseBody> pullImageBlob(@PathVariable(value="hash") final String hash) {
+    public ResponseEntity<StreamingResponseBody> pullImageBlob(@PathVariable(value="name") final String remoteImage, @PathVariable(value="hash") final String hash) {
         // STEP1: prepare everything
         HttpResponse<InputStream> resp = null;
-        logger.info("DOCKER pull hash={}", hash);
-        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", DOCKER_ROOT_IMAGE, hash));
+        logger.info("DOCKER pull hash={} root={}", hash, DOCKER_ROOT_IMAGE);
+        Builder req;
+        if (DOCKER_ROOT_IMAGE.isEmpty()) req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", remoteImage, hash));
+        else req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", DOCKER_ROOT_IMAGE, hash));
 
         // STEP2: make the request
         try {
