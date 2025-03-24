@@ -32,7 +32,7 @@ public class DockerRegistryController {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    @Value("${registry.docker.registry:https://registry.hub.docker.com/v2/%s/manifests/%s}")
+    @Value("${registry.docker.registry:https://registry.hub.docker.com}")
     private String DOCKER_REGISTRY;
 
     @Value("${registry.docker.image}")
@@ -60,7 +60,7 @@ public class DockerRegistryController {
         // STEP1: prepare everything
         logger.info("DOCKER pull image={} tag={}", remoteImage, tag);
         HttpResponse<String> resp;
-        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY, DOCKER_ROOT_IMAGE, remoteImage));
+        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", DOCKER_ROOT_IMAGE, remoteImage));
         req.setHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
         // STEP2: make the request
@@ -92,7 +92,7 @@ public class DockerRegistryController {
         // STEP1: prepare everything
         HttpResponse<InputStream> resp = null;
         logger.info("DOCKER pull hash={}", hash);
-        Builder req = this.buildHttpRequest(String.format("https://registry.hub.docker.com/v2/%s/blobs/%s", DOCKER_ROOT_IMAGE, hash));
+        Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", DOCKER_ROOT_IMAGE, hash));
 
         // STEP2: make the request
         try {
