@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,13 +21,11 @@ import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Enumeration;
 
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +35,8 @@ public class DockerRegistryController {
 
 	private static final Logger logger = LoggerFactory.getLogger(DockerRegistryController.class);
 
-	HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
+	HttpClient httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL)
+			.cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL)).build();
 
 	@Value("${registry.docker.url}")
 	private String DOCKER_REGISTRY;
@@ -65,8 +66,8 @@ public class DockerRegistryController {
 
 	@GetMapping("/v2/{name}/manifests/{tag}")
 	public ResponseEntity<StreamingResponseBody> pullImageManifest(
-			@PathVariable(value = "name") final String remoteImage, @PathVariable(value = "tag") final String tag) {
-		logger.info("DOCKER pull image={} tag={}", remoteImage, tag);
+			@PathVariable(value = "name") final String remoteImage, @PathVariable(value = "tag") final String tag,
+			HttpServletRequest request) {
 		Builder req;
 		if (DOCKER_ROOT_IMAGE.isEmpty())
 			req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", remoteImage, tag));
@@ -74,107 +75,94 @@ public class DockerRegistryController {
 			req = this.buildHttpRequest(
 					String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", DOCKER_ROOT_IMAGE, remoteImage));
 		req.setHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json");
-		return this.proxy(req);
+		return this.proxy(req, request);
 	}
 
 	@GetMapping("/v2/{name}/blobs/{hash}")
 	public ResponseEntity<StreamingResponseBody> pullImageBlob(@PathVariable(value = "name") final String remoteImage,
-			@PathVariable(value = "hash") final String hash) {
-		logger.info("DOCKER pull hash={}", hash);
+			@PathVariable(value = "hash") final String hash, HttpServletRequest request) {
 		Builder req;
 		if (DOCKER_ROOT_IMAGE.isEmpty())
 			req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", remoteImage, hash));
 		else
 			req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", DOCKER_ROOT_IMAGE, hash));
-		return this.proxy(req);
-	}
-
-	// -------------------------------------------------------
-	// docker push -------------------------------------------
-	// -------------------------------------------------------
-	@RequestMapping(value = "/v2/{name}/blobs/{digest}", method = RequestMethod.HEAD)
-	public ResponseEntity<StreamingResponseBody> headImage(@PathVariable("name") final String remoteImage,
-			@PathVariable("digest") final String digest, HttpServletRequest request) {
-		if (!this.isAuthenticated(request))
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.METHOD_NOT_ALLOWED);
-		logger.info("DOCKER blob::head blob image={} digest={}", remoteImage, digest);
-		if (!DOCKER_ROOT_IMAGE.isEmpty())
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
-		Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", remoteImage, digest));
-		req.method(RequestMethod.HEAD.toString(), HttpRequest.BodyPublishers.noBody());
-		return this.proxy(req);
-	}
-
-	@RequestMapping(value = "/v2/{name}/manifests/{tag}", method = RequestMethod.PUT)
-	public ResponseEntity<StreamingResponseBody> pushImageManifest(@PathVariable("name") final String remoteImage,
-			@PathVariable("tag") final String tag, @RequestBody(required = false) String manifest,
-			HttpServletRequest request) {
-		if (!this.isAuthenticated(request))
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.METHOD_NOT_ALLOWED);
-		logger.info("DOCKER push::manifest image={} tag={}", remoteImage, tag);
-		if (!DOCKER_ROOT_IMAGE.isEmpty())
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
-		Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", remoteImage, tag));
-		req.setHeader("Content-Type", "application/vnd.docker.distribution.manifest.v2+json");
-		req.method(RequestMethod.PUT.toString(), HttpRequest.BodyPublishers.ofString(manifest));
-		return this.proxy(req);
-	}
-
-	@RequestMapping(value = "/v2/{name}/blobs/uploads/", method = RequestMethod.POST)
-	public ResponseEntity<StreamingResponseBody> pushImageBlobPost(
-			@PathVariable(value = "name") final String remoteImage, HttpServletRequest request) {
-		if (!this.isAuthenticated(request))
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.METHOD_NOT_ALLOWED);
-		logger.info("DOCKER push::blob image={}", remoteImage);
-		if (!DOCKER_ROOT_IMAGE.isEmpty())
-			return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
-		Builder req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/uploads/", remoteImage));
-		req.method(RequestMethod.POST.toString(), HttpRequest.BodyPublishers.noBody());
-		return this.proxy(req);
+		return this.proxy(req, request);
 	}
 
 	// -------------------------------------------------------
 	// helpers -----------------------------------------------
 	// -------------------------------------------------------
-	private boolean isAuthenticated(HttpServletRequest request) {
-		String authHeader = request.getHeader("Authorization");
-		if (authHeader == null || !authHeader.startsWith("Basic ")) {
-			return false;
+	private ResponseEntity<StreamingResponseBody> proxy(Builder req, HttpServletRequest request) {
+		// proxy incoming header
+		Enumeration<String> headerNames = request.getHeaderNames();
+		if (headerNames != null) {
+			while (headerNames.hasMoreElements()) {
+				String headerName = headerNames.nextElement();
+				if ("host".equalsIgnoreCase(headerName) || "content-length".equalsIgnoreCase(headerName)
+						|| "connection".equalsIgnoreCase(headerName)) {
+					continue;
+				}
+				Enumeration<String> headerValues = request.getHeaders(headerName);
+				while (headerValues.hasMoreElements()) {
+					String headerValue = headerValues.nextElement();
+					req.setHeader(headerName, headerValue);
+				}
+			}
 		}
-		String provided = authHeader.substring("Basic ".length()).trim();
-		String expected = Base64.getEncoder().encodeToString(DOCKER_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
-		logger.info("docker provided={} expected={} res={} config={}", provided, expected, provided.equals(expected),
-				DOCKER_CREDENTIALS);
-		return provided.equals(expected);
-	}
+		req.setHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+		req.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(DOCKER_CREDENTIALS.getBytes()));
 
-	private ResponseEntity<StreamingResponseBody> proxy(Builder req) {
 		HttpResponse<InputStream> resp = null;
 		try {
 			resp = this.httpClient.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
 		} catch (IOException | InterruptedException e) {
+			logger.warn("proxy::exception msg={}", e.getMessage());
 			return new ResponseEntity<StreamingResponseBody>(null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// STEP3: prepare the response
-		InputStream inputStream = resp.body();
-		HttpHeaders h = new HttpHeaders();
+		// prepare the response
+		HttpHeaders hout = new HttpHeaders();
 		resp.headers().map().forEach((key, values) -> {
 			if (key == null || !key.matches("^[a-z-A-Z0-9]+$")) {
 				return;
 			}
 			for (String value : values) {
-				h.add(key, value);
+				if ("location".equalsIgnoreCase(key)) {
+					// value = value.replaceFirst("(?i)^https?://[^/]+", "http://localhost:8080");
+					value = value.replaceFirst("(?i)^https?://[^/]+", "https://platform.filestash.app");
+					logger.info("redirect={}", value);
+				}
+				hout.add(key, value);
 			}
 		});
+
+		// handle errors
+		int status = resp.statusCode();
+		if (status >= 400 && status != 404) {
+			try (InputStream is = resp.body()) {
+				byte[] buffer = new byte[1024];
+				int bytesRead = is.read(buffer);
+				String errorSnippet = (bytesRead > 0) ? new String(buffer, 0, bytesRead) : "";
+				logger.warn("proxy::error  status={} snippet={}", status, errorSnippet);
+				StreamingResponseBody responseBody = outputStream -> outputStream
+						.write(errorSnippet.getBytes(StandardCharsets.UTF_8));
+				return new ResponseEntity<StreamingResponseBody>(responseBody, hout, status);
+			} catch (IOException ioe) {
+				logger.warn("proxy::error::throw msg={}", ioe.getMessage());
+				return new ResponseEntity<StreamingResponseBody>(null, hout, status);
+			}
+		}
+
+		// happy path
+		InputStream inputStream = resp.body();
 		StreamingResponseBody responseBody = (outputStream) -> {
 			try {
 				IOUtils.copy(inputStream, outputStream);
-			} catch (Exception e) {
-				logger.warn("docker::pull::blob err[blob copy error] msg[%s]", e.getMessage());
+			} catch (IOException e) {
+				logger.warn("docker::proxy::blob type=[ioexception] err[blob copy error] msg=[{}]", e.getMessage());
 			}
 		};
-		return new ResponseEntity<StreamingResponseBody>(responseBody, h, resp.statusCode());
+		return new ResponseEntity<StreamingResponseBody>(responseBody, hout, resp.statusCode());
 	}
 
 	private Builder buildHttpRequest(String url) {
