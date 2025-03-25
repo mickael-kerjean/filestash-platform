@@ -15,6 +15,7 @@ public class SessionConfig {
 			.authorizeHttpRequests((requests) -> requests
 				.anyRequest().permitAll()
 			)
+			.csrf((c) -> c.disable())
 			.formLogin((form) -> form.disable())
 			.logout((logout) -> logout.disable());
 		
