@@ -84,20 +84,20 @@ public class PaymentServiceImpl implements PaymentService {
 			Map<String, Object> params = new HashMap<>();
 			params.put("limit", 12);
 			params.put("customer", cids.get(i));
-            InvoiceCollection invcoll = null;
+            ChargeCollection chargecoll = null;
             try {
-                invcoll = com.stripe.model.Invoice.list(params);
+                chargecoll = Charge.list(params);
             } catch (StripeException err) {
-				logger.warn("paymentService::getInvoices action=invoice.list err={}", err.getMessage());
+				logger.warn("paymentService::getInvoices action=charge.list err={}", err.getMessage());
                 continue;
             }
-			for(int j=0; j<invcoll.getData().size(); j++) {
-				com.stripe.model.Invoice inv = invcoll.getData().get(j);
+			for(int j=0; j<chargecoll.getData().size(); j++) {
+				Charge charge = chargecoll.getData().get(j);
 				invoices.add(Invoice.builder()
-						.url(inv.getHostedInvoiceUrl())
-						.amount(currencyUtils.format(inv.getCurrency(), inv.getAmountPaid()))
-						.creationDate(LocalDate.ofInstant(Instant.ofEpochSecond(inv.getCreated()), ZoneId.systemDefault())) // Convert Instant to LocalDate
-						.build());
+					.url(charge.getReceiptUrl())
+					.amount(currencyUtils.format(charge.getCurrency(), charge.getAmount()))
+					.creationDate(LocalDate.ofInstant(Instant.ofEpochSecond(charge.getCreated()), ZoneId.systemDefault()))
+					.build());
 			}
 		}
 		return invoices;
