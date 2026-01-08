@@ -47,8 +47,8 @@ public class ReleaseNoteServiceImpl implements ReleaseNoteService {
                     .stream()
                     .map(element -> {
                         return Commit.builder()
-                                .message(element.getElementsByAttribute("title").attr("title").split("\\R")[0])
-                                .hash(element.getElementsByAttribute("href").attr("href").replaceAll(".*/commit/([a-f0-9]{40})$", "$1"))
+                                .message(element.select("a[href*='/commit/'] span").first().text())
+                                .hash(element.attr("data-commit-link").replaceAll(".*/commit/([a-f0-9]{40})$", "$1"))
                                 .date(LocalDate.parse(
                                         element.parents().select("[data-testid=commit-group-title]").first().text().replace("Commits on", "").trim(),
                                         DateTimeFormatter.ofPattern("MMM d, yyyy")
