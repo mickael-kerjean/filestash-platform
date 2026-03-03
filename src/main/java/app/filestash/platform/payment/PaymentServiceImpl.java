@@ -91,6 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 			for(int j=0; j<chargecoll.getData().size(); j++) {
 				Charge charge = chargecoll.getData().get(j);
+				if (charge.getReceiptUrl() == null) continue;
 				invoices.add(Invoice.builder()
 					.url(charge.getReceiptUrl())
 					.amount(currencyUtils.format(charge.getCurrency(), charge.getAmount()))
