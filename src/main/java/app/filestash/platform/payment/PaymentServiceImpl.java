@@ -11,8 +11,7 @@ import app.filestash.platform.payment.domain.Invoice;
 import com.stripe.model.*;
 import com.stripe.model.billingportal.Session;
 import com.stripe.param.CustomerListPaymentMethodsParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,10 +19,9 @@ import com.stripe.param.CustomerSearchParams;
 import com.stripe.exception.StripeException;
 import com.stripe.Stripe;
 
+@Slf4j
 @Service
 public class PaymentServiceImpl implements PaymentService {
-
-	private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
 	@Value("${stripe.token}")
 	private String STRIPE_API_TOKEN;
@@ -34,7 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@PostConstruct
 	public void StripeServiceSetup() {
 		if (!STRIPE_API_TOKEN.startsWith("sk_")) {
-			logger.warn("STRIPE_TOKEN is not valid");
+			log.warn("STRIPE_TOKEN is not valid");
 		}
 		Stripe.apiKey = STRIPE_API_TOKEN;
 	}
@@ -48,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
             try {
                 customer = Customer.retrieve(cid);
             } catch (StripeException err) {
-				logger.warn("paymentService::getCards action=customer.retrieve err={}", err.getMessage());
+				log.warn("paymentService::getCards action=customer.retrieve err={}", err.getMessage());
 				continue;
             }
             CustomerListPaymentMethodsParams params = CustomerListPaymentMethodsParams.builder()
@@ -58,7 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
             try {
                 paymentMethods = customer.listPaymentMethods(params);
             } catch (StripeException err) {
-				logger.warn("paymentService::getCards action=customer.listPaymentMethods err={}", err.getMessage());
+				log.warn("paymentService::getCards action=customer.listPaymentMethods err={}", err.getMessage());
 				continue;
             }
             List<PaymentMethod> pms = paymentMethods.getData();
@@ -88,7 +86,7 @@ public class PaymentServiceImpl implements PaymentService {
             try {
                 chargecoll = Charge.list(params);
             } catch (StripeException err) {
-				logger.warn("paymentService::getInvoices action=charge.list err={}", err.getMessage());
+				log.warn("paymentService::getInvoices action=charge.list err={}", err.getMessage());
                 continue;
             }
 			for(int j=0; j<chargecoll.getData().size(); j++) {
@@ -115,7 +113,7 @@ public class PaymentServiceImpl implements PaymentService {
 				ids.add(result.getData().get(i).getId());
 			}
 		} catch (StripeException err) {
-			logger.warn("paymentService::getCustomerId action=customer.search err={}", err.getMessage());
+			log.warn("paymentService::getCustomerId action=customer.search err={}", err.getMessage());
 			return ids;
 		}
 		return ids;
@@ -127,7 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             return Optional.of(Session.create(params));
         } catch (StripeException err) {
-			logger.warn("paymentService::getSession action=session.create err={}", err.getMessage());
+			log.warn("paymentService::getSession action=session.create err={}", err.getMessage());
             return Optional.empty();
         }
     }

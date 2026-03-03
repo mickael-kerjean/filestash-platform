@@ -1,6 +1,7 @@
 package app.filestash.platform.documentation;
 
 import app.filestash.platform.documentation.domain.Commit;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ReleaseNoteServiceImpl implements ReleaseNoteService {
 
@@ -57,8 +59,7 @@ public class ReleaseNoteServiceImpl implements ReleaseNoteService {
                     })
                     .collect(Collectors.toList());
         } catch (IOException e) {
-            // Log the error (use a logger or print stack trace for debugging)
-            System.err.println("Error fetching commits: " + e.getMessage());
+            log.warn("Error fetching commits: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
