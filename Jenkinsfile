@@ -6,13 +6,24 @@ pipeline {
     stages {
         stage("Build") {
             steps {
-                sh "./mvnw package"
+                script {
+                    docker.image("eclipse-temurin:17-jdk").inside {
+                        sh "./mvnw package"
+                    }
+                }
             }
         }
         stage("Release") {
             steps {
-                sh "scp target/platform-0.0.1-SNAPSHOT.jar ci@hal.filestash.app:/mnt/me-kerjean-archive/files/artifacts/filestash-platform.jar"
-                sh "scp src/main/resources/application.properties ci@hal.filestash.app:/mnt/me-kerjean-archive/files/artifacts/filestash-platform.properties"
+                script {
+                    docker.image("alpine").inside("--user=root") {
+                        withCredentials([sshUserPrivateKey(credentialsId: "app-filestash-hal", keyFileVariable: "SSH_KEY")]) {
+                            sh "apk add openssh-client"
+                            sh 'scp -i $SSH_KEY -o StrictHostKeyChecking=no target/platform-0.0.1-SNAPSHOT.jar ci@hal.filestash.app:/mnt/me-kerjean-archive/files/artifacts/filestash-platform.jar'
+                            sh 'scp -i $SSH_KEY -o StrictHostKeyChecking=no src/main/resources/application.properties ci@hal.filestash.app:/mnt/me-kerjean-archive/files/artifacts/filestash-platform.properties'
+                        }
+                    }
+                }
             }
         }
     }
