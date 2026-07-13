@@ -16,7 +16,7 @@ pipeline {
         stage("Release") {
             steps {
                 script {
-                    docker.image("alpine").inside("--user=root") {
+                    docker.image("alpine").inside("--user=root --add-host=hal.filestash.app:10.10.102.2") {
                         withCredentials([sshUserPrivateKey(credentialsId: "app-filestash-hal", keyFileVariable: "SSH_KEY")]) {
                             sh "apk add openssh-client"
                             sh 'scp -i $SSH_KEY -o StrictHostKeyChecking=no target/platform-0.0.1-SNAPSHOT.jar ci@hal.filestash.app:/mnt/me-kerjean-archive/files/artifacts/filestash-platform.jar'
