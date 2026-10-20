@@ -8,7 +8,7 @@ pipeline {
             steps {
                 script {
                     docker.image("eclipse-temurin:17-jdk").inside {
-                        sh "./mvnw package"
+                        sh 'HOME=$WORKSPACE ./mvnw package'
                     }
                 }
             }
