@@ -3,6 +3,7 @@ package app.filestash.platform.registry;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
+
+import app.filestash.platform.session.SessionCodeService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
@@ -50,17 +56,22 @@ public class DockerRegistryController {
 	@Value("${registry.docker.credentials}")
 	private String DOCKER_CREDENTIALS;
 
+	@Autowired
+	SessionCodeService codeService;
+
 	@GetMapping("/{repository:.+}:{tag:.+}")
 	public String ImagePage(@PathVariable String repository, @PathVariable String tag, Model model) {
 		String img = "platform.filestash.app/" + repository + ":" + tag;
 		model.addAttribute("title", "Docker Registry");
 		model.addAttribute("name", img);
-		model.addAttribute("cmd", "docker pull " + img);
+		model.addAttribute("cmd", "docker login platform.filestash.app\ndocker pull " + img);
 		return "registry_public";
 	}
 
 	@GetMapping("/v2/")
-	public ResponseEntity<String> authenticateRegistry() {
+	public ResponseEntity<String> authenticateRegistry(HttpServletRequest request) {
+		if (!this.isAuthenticated(request))
+			return this.unauthorized();
 		return ResponseEntity.status(HttpStatus.OK).body("");
 	}
 
@@ -68,6 +79,8 @@ public class DockerRegistryController {
 	public ResponseEntity<StreamingResponseBody> pullImageManifest(
 			@PathVariable(value = "name") final String remoteImage, @PathVariable(value = "tag") final String tag,
 			HttpServletRequest request) {
+		if (!this.isAuthenticated(request))
+			return this.unauthorized();
 		Builder req;
 		if (DOCKER_ROOT_IMAGE.isEmpty())
 			req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/manifests/%s", remoteImage, tag));
@@ -81,6 +94,8 @@ public class DockerRegistryController {
 	@GetMapping("/v2/{name}/blobs/{hash}")
 	public ResponseEntity<StreamingResponseBody> pullImageBlob(@PathVariable(value = "name") final String remoteImage,
 			@PathVariable(value = "hash") final String hash, HttpServletRequest request) {
+		if (!this.isAuthenticated(request))
+			return this.unauthorized();
 		Builder req;
 		if (DOCKER_ROOT_IMAGE.isEmpty())
 			req = this.buildHttpRequest(String.format(DOCKER_REGISTRY + "/v2/%s/blobs/%s", remoteImage, hash));
@@ -92,6 +107,20 @@ public class DockerRegistryController {
 	// -------------------------------------------------------
 	// helpers -----------------------------------------------
 	// -------------------------------------------------------
+	private boolean isAuthenticated(HttpServletRequest request) {
+		try {
+			UsernamePasswordAuthenticationToken auth = new BasicAuthenticationConverter().convert(request);
+			return auth != null && codeService.verifyCode(auth.getName(), auth.getCredentials().toString());
+		} catch (AuthenticationException e) {
+			return false;
+		}
+	}
+
+	private <T> ResponseEntity<T> unauthorized() {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"platform.filestash.app\"").build();
+	}
+
 	private ResponseEntity<StreamingResponseBody> proxy(Builder req, HttpServletRequest request) {
 		// proxy incoming header
 		Enumeration<String> headerNames = request.getHeaderNames();
