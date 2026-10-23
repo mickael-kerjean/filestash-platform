@@ -2,6 +2,7 @@ package app.filestash.platform.documentation;
 
 import app.filestash.platform.documentation.domain.Commit;
 import app.filestash.platform.documentation.domain.Package;
+import app.filestash.platform.session.SessionCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -25,12 +26,22 @@ public class DocumentationController {
     @Autowired
     CustomerPackage customerPackage;
 
+    @Autowired
+    SessionCodeService codeService;
+
     @GetMapping("/user/docker/")
     public String listImages(Model model, Principal principal) throws Exception {
         ArrayList<Package> images = new ArrayList<Package>();
         images.add(Package.builder().name("AGPL").cmd("docker run -p 8334:8334 --name filestash --rm machines/filestash").build());
 
         boolean hasCustomBuild = false;
+        if (principal != null && principal.getName().contains("@")) {
+            String domain = principal.getName().substring(principal.getName().indexOf('@') + 1);
+            images.add(0, Package.builder().name("registry login").cmd(String.format(
+                    "echo %s | docker login platform.filestash.app -u %s --password-stdin",
+                    codeService.generateCode(domain), domain
+            )).build());
+        }
         if (principal != null) {
             images.add(Package.builder().name("enterprise").cmd("docker run -p 8334:8334 --name filestash --rm platform.filestash.app/enterprise").build());
             images.addAll(customerPackage.listDockerImages(principal.getName()));
