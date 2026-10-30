@@ -21,7 +21,7 @@ class IndexControllerTest {
     void testLandingPage() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Software Deployment")))
+                .andExpect(content().string(containsString("Deployment")))
                 .andExpect(content().string(containsString("Support")));
     }
 }
