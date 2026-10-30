@@ -5,7 +5,7 @@
         <div th:replace="~{fragments/components :: menu}"></div>
         <div class="container">
 
-            <h2> Software Deployment</h2>
+            <h2> Deployment</h2>
             <div class="box-container" style="margin-bottom:5px;">
          	    <div class="bracket-legend">
          		    <span class="bracket">&nbsp;</span>
@@ -32,7 +32,7 @@
 
         	    <a sec:authorize="isAuthenticated()" class="box" href="mailto:support@filestash.app?subject=Filestash support">Email support</a>
         	    <div sec:authorize="!isAuthenticated()" class="box disabled" title="customer only">Email support</div>
-        	    
+
         	    <a sec:authorize="isAuthenticated()" class="box" th:href="@{/support/book}">Book a Support Call</a>
         	    <div sec:authorize="!isAuthenticated()" class="box disabled" title="customer only">Book a Support Call</div>
 	        </div>
@@ -40,7 +40,6 @@
             <div sec:authorize="isAnonymous() or hasRole('ROLE_CHAMPION')">
 	            <h2> Billing </h2>
                 <div class="box-container">
-
 		            <div sec:authorize="isAnonymous()"><a class="box disabled">Invoices</a></div>
                     <div sec:authorize="hasRole('ROLE_CHAMPION')"><a class="box" th:href="@{/support/billing}">Invoices</a></div>
 

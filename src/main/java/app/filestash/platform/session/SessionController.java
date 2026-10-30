@@ -22,12 +22,12 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class SessionController {
-		
+
     private static final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
 	@Autowired
 	SessionCodeService codeService;
-	
+
 	@GetMapping("/login")
 	public String loginForm(HttpServletRequest request) {
 		return "login";
@@ -37,26 +37,23 @@ public class SessionController {
 	public String sendCodePage(Model model, @RequestBody MultiValueMap<String, String> params, HttpServletRequest request) {
 		String email = params.getFirst("username");
 		String baseURL = request.getRequestURL().toString().replaceAll(request.getRequestURI(), "");
-		logger.info("login link - {}/login/callback?email={}&code={}", baseURL, email, codeService.generateCode(email));
+		String link = String.format("%s/login/callback?email=%s&code=%s", baseURL, email, codeService.generateCode(email));
 		model.addAttribute("message", "Done");
-		model.addAttribute("description", "Ask support for your link");
+		model.addAttribute("description", request.isUserInRole("ADMIN") ? link : "Ask support for your link");
+		logger.info("login link - {}", link);
 		return "message";
 	}
-	
+
 	@GetMapping("/login/callback")
 	public String loginWithCodePage(HttpServletRequest request) {
-		String email = request.getParameter("email");
+		String name = request.getParameter("email");
 		String code = request.getParameter("code");
 		String next = request.getParameter("next");
-		
-		if (!codeService.verifyCode(email, code)) {
+		if (!codeService.verifyCode(name, code)) {
 			throw new IllegalStateException("Wrong link");
 		}
-		this.setRole(request, email, "ROLE_CHAMPION");
-		if (next != null) {
-			return String.format("redirect:%s", next);
-		}
-		return "redirect:/";
+		this.setRole(request, name, name.contains("@") ? "ROLE_CHAMPION" : name.equals("admin") ? "ROLE_ADMIN" : "ROLE_MEMBER");
+		return next == null ? "redirect:/" : String.format("redirect:%s", next);
 	}
 
 	@GetMapping("/login/anonymous")
@@ -79,7 +76,7 @@ public class SessionController {
 		session.invalidate();
 		return "redirect:/";
 	}
-	
+
 	private void setRole(HttpServletRequest request, String origin, String role) {
 		Authentication authentication = new UsernamePasswordAuthenticationToken(
 			origin, null, AuthorityUtils.createAuthorityList(role)

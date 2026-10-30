@@ -62,7 +62,7 @@ public class CustomerPackageImpl implements CustomerPackage {
                         logger.warn("list builds customer={} image={}", customer, imageName);
                         throw new IllegalStateException("cannot find packages");
                 }
-                ps.add(Package.builder().cmd(cmd).name(customer + "::" + imageName).build());
+                ps.add(Package.builder().cmd(new String[]{cmd}).name(customer + "::" + imageName).build());
             });
         }
         return ps;
@@ -101,7 +101,7 @@ public class CustomerPackageImpl implements CustomerPackage {
                 if(imageName.startsWith("machines/stash:")) {
                     imageName = imageName.replaceFirst("machines/stash:", "platform.filestash.app/");
                 }
-                ps.add(Package.builder().name(customer).cmd("docker run --name filestash " + port + "--rm " + imageName).build());
+                ps.add(Package.builder().name(customer).cmd(new String[]{"docker run --name filestash " + port + "--rm " + imageName}).build());
             });
         }
         return ps;

@@ -32,18 +32,15 @@ public class DocumentationController {
     @GetMapping("/user/docker/")
     public String listImages(Model model, Principal principal) throws Exception {
         ArrayList<Package> images = new ArrayList<Package>();
-        images.add(Package.builder().name("AGPL").cmd("docker run -p 8334:8334 --name filestash --rm machines/filestash").build());
+        images.add(Package.builder().name("AGPL").cmd(new String[]{"docker run -p 8334:8334 --name filestash --rm machines/filestash"}).build());
 
         boolean hasCustomBuild = false;
-        if (principal != null && principal.getName().contains("@")) {
-            String domain = principal.getName().substring(principal.getName().indexOf('@') + 1);
-            images.add(0, Package.builder().name("registry login").cmd(String.format(
-                    "echo %s | docker login platform.filestash.app -u %s --password-stdin",
-                    codeService.generateCode(domain), domain
-            )).build());
-        }
         if (principal != null) {
-            images.add(Package.builder().name("enterprise").cmd("docker run -p 8334:8334 --name filestash --rm platform.filestash.app/enterprise").build());
+            String domain = principal.getName().substring(principal.getName().indexOf('@') + 1);
+            images.add(Package.builder().name("Enterprise").cmd(new String[]{
+                 String.format("echo %s | docker login platform.filestash.app -u %s --password-stdin", codeService.generateCode(domain), domain),
+                "docker run -p 8334:8334 --name filestash --rm platform.filestash.app/enterprise",
+            }).build());
             images.addAll(customerPackage.listDockerImages(principal.getName()));
         }
         if (hasCustomBuild == false) model.addAttribute(

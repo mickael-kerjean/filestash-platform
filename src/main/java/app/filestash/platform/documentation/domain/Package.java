@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class Package {
     public String name;
-    public String cmd;
+    public String[] cmd;
 }
