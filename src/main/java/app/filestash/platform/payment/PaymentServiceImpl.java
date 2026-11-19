@@ -99,6 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
 					.build());
 			}
 		}
+		invoices.sort(Comparator.comparing(Invoice::getCreationDate).reversed());
 		return invoices;
 	}
 
