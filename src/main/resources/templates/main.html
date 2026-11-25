@@ -15,7 +15,7 @@
         	    <a class="box" th:href="@{/user/packages/}"> Packages </a>
 
                 <a class="box" sec:authorize="isAuthenticated()" th:href="@{/release/}">Release Note</a>
-                <a class="box" sec:authorize="isAuthenticated()" th:href="@{/advisory/}">Security Advisories</a>
+                <a class="box" sec:authorize="isAuthenticated()" th:href="@{/advisory/}">Security Advisories<span th:if="${hasAdvisory}" class="warning" title="New security advisory this month">&#x26A0;&#xFE0E;</span></a>
             </div>
             <div class="box-container" style="margin-bottom:5px;">
                 <div class="bracket-legend"> <span class="bracket">&nbsp;</span><span class="legend">cloud</span> </div>
@@ -73,6 +73,13 @@
 	         font-family: inherit;
 	         text-align: center;
 	         display: block;
+	     }
+	     .box .warning {
+	         position: absolute;
+	         top: 6px;
+	         right: 8px;
+	         color: #e8a33d;
+	         font-size: 1.2rem;
 	     }
 	     .box.disabled {
     	     background: var(--light);
