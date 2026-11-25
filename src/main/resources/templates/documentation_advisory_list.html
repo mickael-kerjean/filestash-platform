@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head th:replace="~{fragments/components :: head(title='Security Advisories')}"></head>
+  <body>
+    <div class="container">
+      <h2 class="menubar"> <a class="back" th:href="@{/}">&nbsp;</a> <span th:text="${title}"></span> </h2>
+      <div th:each="item : ${items}" class="card">
+        <strong th:text="${item.title}"></strong> <code th:text="${item.category}"></code>
+        <div th:text="${item.description}"></div>
+      </div>
+    </div>
+  </body>
+</html>

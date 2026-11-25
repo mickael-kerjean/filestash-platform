@@ -3,6 +3,8 @@ package app.filestash.platform.documentation;
 import app.filestash.platform.documentation.domain.Commit;
 import app.filestash.platform.documentation.domain.Package;
 import app.filestash.platform.session.SessionCodeService;
+import org.jsoup.Jsoup;
+import org.jsoup.parser.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -65,6 +67,20 @@ public class DocumentationController {
                 "To get your own deployment package, <a href=\"https://www.filestash.app/pricing/?modal=enterprise\">contact us</a>"
         );
         return "documentation_package_list";
+    }
+
+    @GetMapping("/advisory/")
+    public String listAdvisories(Model model) throws Exception {
+        model.addAttribute("title", "Security Advisories");
+        model.addAttribute("items", Jsoup.connect("https://www.filestash.app/advisory.xml")
+                .parser(Parser.xmlParser()).get()
+                .select("item").stream()
+                .map(item -> Map.of(
+                        "title", item.select("title").text(),
+                        "category", item.select("category").text(),
+                        "description", item.select("description").text()
+                )).toList());
+        return "documentation_advisory_list";
     }
 
     @GetMapping("/release/")
