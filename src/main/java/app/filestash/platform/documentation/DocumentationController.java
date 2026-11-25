@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -67,6 +68,12 @@ public class DocumentationController {
                 "To get your own deployment package, <a href=\"https://www.filestash.app/pricing/?modal=enterprise\">contact us</a>"
         );
         return "documentation_package_list";
+    }
+
+    @GetMapping(value = "/advisory.xml", produces = "application/rss+xml")
+    @ResponseBody
+    public String advisoryFeed() throws Exception {
+        return Jsoup.connect("https://www.filestash.app/advisory.xml").ignoreContentType(true).execute().body();
     }
 
     @GetMapping("/advisory/")
